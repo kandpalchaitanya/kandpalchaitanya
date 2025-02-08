@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eisenhower Matrix</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Eisenhower Matrix</h1>
+
+        <div class="task-input">
+            <input type="text" id="task" placeholder="Enter a new task">
+            <select id="category">
+                <option value="Important & Urgent">Important & Urgent (Do First)</option>
+                <option value="Important but Not Urgent">Important but Not Urgent (Schedule)</option>
+                <option value="Not Important but Urgent">Not Important but Urgent (Delegate)</option>
+                <option value="Not Important & Not Urgent">Not Important & Not Urgent (Eliminate)</option>
+            </select>
+            <button onclick="addTask()">Add Task</button>
+        </div>
+
+        <div class="matrix">
+            <div class="card" id="important-urgent">
+                <h2>Important & Urgent (Do First)</h2>
+                <ul></ul>
+            </div>
+            <div class="card" id="important-not-urgent">
+                <h2>Important but Not Urgent (Schedule)</h2>
+                <ul></ul>
+            </div>
+            <div class="card" id="not-important-urgent">
+                <h2>Not Important but Urgent (Delegate)</h2>
+                <ul></ul>
+            </div>
+            <div class="card" id="not-important-not-urgent">
+                <h2>Not Important & Not Urgent (Eliminate)</h2>
+                <ul></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function addTask() {
+            const task = document.getElementById('task').value;
+            const category = document.getElementById('category').value;
+
+            if (!task) {
+                alert('Please enter a task');
+                return;
+            }
+
+            const categoryId = category.toLowerCase().replace(/\s+&\s+/g, '-').replace(/\s+/g, '-');
+            const list = document.querySelector(`#${categoryId} ul`);
+
+            const listItem = document.createElement('li');
+            listItem.textContent = task;
+            list.appendChild(listItem);
+
+            document.getElementById('task').value = '';
+        }
+    </script>
+</body>
+</html>
