@@ -63,12 +63,21 @@
             margin-bottom: 10px;
         }
         .card ul {
-            list-style-type: disc;
-            padding-left: 20px;
+            list-style-type: none;
+            padding-left: 0;
             color: #555;
         }
         .card ul li {
             margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+        }
+        .card ul li.completed {
+            color: #aaa;
+            text-decoration: line-through;
+        }
+        .card ul li label {
+            flex: 1;
         }
     </style>
 </head>
@@ -115,8 +124,7 @@
                 const tasks = JSON.parse(localStorage.getItem(category)) || [];
                 const list = document.querySelector(`#${category} ul`);
                 tasks.forEach(task => {
-                    const listItem = document.createElement('li');
-                    listItem.textContent = task;
+                    const listItem = createTaskElement(task.text, task.completed, category);
                     list.appendChild(listItem);
                 });
             });
@@ -134,16 +142,61 @@
             const categoryId = category.toLowerCase().replace(/\s+&\s+/g, '-').replace(/\s+/g, '-');
             const list = document.querySelector(`#${categoryId} ul`);
 
-            const listItem = document.createElement('li');
-            listItem.textContent = task;
+            const listItem = createTaskElement(task, false, categoryId);
             list.appendChild(listItem);
 
             // Save to local storage
-            const tasks = JSON.parse(localStorage.getItem(categoryId)) || [];
-            tasks.push(task);
-            localStorage.setItem(categoryId, JSON.stringify(tasks));
+            saveTaskToLocalStorage(categoryId, task, false);
 
             document.getElementById('task').value = '';
+        }
+
+        function createTaskElement(taskText, completed, categoryId) {
+            const listItem = document.createElement('li');
+            listItem.className = completed ? 'completed' : '';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = completed;
+            checkbox.addEventListener('change', () => handleTaskCompletion(checkbox, listItem, taskText, categoryId));
+
+            const label = document.createElement('label');
+            label.textContent = taskText;
+
+            listItem.appendChild(checkbox);
+            listItem.appendChild(label);
+
+            return listItem;
+        }
+
+        function handleTaskCompletion(checkbox, listItem, taskText, categoryId) {
+            const completed = checkbox.checked;
+            listItem.className = completed ? 'completed' : '';
+
+            updateTaskInLocalStorage(categoryId, taskText, completed);
+
+            if (completed) {
+                setTimeout(() => {
+                    const tasks = JSON.parse(localStorage.getItem(categoryId)) || [];
+                    const updatedTasks = tasks.filter(task => task.text !== taskText || !task.completed);
+                    localStorage.setItem(categoryId, JSON.stringify(updatedTasks));
+                    listItem.remove();
+                }, 48 * 60 * 60 * 1000); // 48 hours in milliseconds
+            }
+        }
+
+        function saveTaskToLocalStorage(categoryId, taskText, completed) {
+            const tasks = JSON.parse(localStorage.getItem(categoryId)) || [];
+            tasks.push({ text: taskText, completed });
+            localStorage.setItem(categoryId, JSON.stringify(tasks));
+        }
+
+        function updateTaskInLocalStorage(categoryId, taskText, completed) {
+            const tasks = JSON.parse(localStorage.getItem(categoryId)) || [];
+            const updatedTasks = tasks.map(task => 
+                task.text === taskText ? { text: task.text, completed } : task
+            );
+            localStorage.setItem(categoryId, JSON.stringify(updatedTasks));
         }
     </script>
 </body>
