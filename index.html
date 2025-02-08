@@ -4,7 +4,73 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Eisenhower Matrix</title>
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        .container {
+            padding: 20px;
+            max-width: 1200px;
+            margin: auto;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .task-input {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .task-input input, .task-input select {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .task-input button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .task-input button:hover {
+            background-color: #0056b3;
+        }
+        .matrix {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .card {
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .card h2 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .card ul {
+            list-style-type: disc;
+            padding-left: 20px;
+            color: #555;
+        }
+        .card ul li {
+            margin-bottom: 5px;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -42,6 +108,20 @@
     </div>
 
     <script>
+        // Load tasks from local storage on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const categories = ['important-urgent', 'important-not-urgent', 'not-important-urgent', 'not-important-not-urgent'];
+            categories.forEach(category => {
+                const tasks = JSON.parse(localStorage.getItem(category)) || [];
+                const list = document.querySelector(`#${category} ul`);
+                tasks.forEach(task => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = task;
+                    list.appendChild(listItem);
+                });
+            });
+        });
+
         function addTask() {
             const task = document.getElementById('task').value;
             const category = document.getElementById('category').value;
@@ -57,6 +137,11 @@
             const listItem = document.createElement('li');
             listItem.textContent = task;
             list.appendChild(listItem);
+
+            // Save to local storage
+            const tasks = JSON.parse(localStorage.getItem(categoryId)) || [];
+            tasks.push(task);
+            localStorage.setItem(categoryId, JSON.stringify(tasks));
 
             document.getElementById('task').value = '';
         }
