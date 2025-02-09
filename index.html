@@ -1,30 +1,172 @@
-function addTask() {
-    const task = document.getElementById('task').value;
-    const deadline = document.getElementById('deadline').value;
-    const category = document.getElementById('category').value;
-    const notification = document.getElementById('notification').value;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eisenhower Matrix</title>
+    <style>
+        /* Existing styles remain unchanged */
+        .clear-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .clear-button:hover {
+            background-color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Eisenhower Matrix</h1>
 
-    if (!task || !deadline) {
-        alert('Please enter both task and deadline');
-        return;
-    }
+        <div class="task-input">
+            <input type="text" id="task" placeholder="Enter a new task">
+            <input type="datetime-local" id="deadline">
+            <select id="category">
+                <option value="important-urgent">Important & Urgent (Do First)</option>
+                <option value="important-not-urgent">Important but Not Urgent (Schedule)</option>
+                <option value="not-important-urgent">Not Important but Urgent (Delegate)</option>
+                <option value="not-important-not-urgent">Not Important & Not Urgent (Eliminate)</option>
+            </select>
+            <select id="notification">
+                <option value="1">1 hour before</option>
+                <option value="3">3 hours before</option>
+                <option value="6">6 hours before</option>
+                <option value="12">12 hours before</option>
+                <option value="24">1 day before</option>
+            </select>
+            <button onclick="addTask()">Add Task</button>
+        </div>
 
-    // Map the category value to the correct DOM ID
-    const categoryMap = {
-        "Important & Urgent": "important-urgent",
-        "Important but Not Urgent": "important-not-urgent",
-        "Not Important but Urgent": "not-important-urgent",
-        "Not Important & Not Urgent": "not-important-not-urgent"
-    };
-    const categoryId = categoryMap[category];
+        <div class="matrix">
+            <div class="card" id="important-urgent">
+                <h2>Important & Urgent (Do First)</h2>
+                <ul></ul>
+            </div>
+            <div class="card" id="important-not-urgent">
+                <h2>Important but Not Urgent (Schedule)</h2>
+                <ul></ul>
+            </div>
+            <div class="card" id="not-important-urgent">
+                <h2>Not Important but Urgent (Delegate)</h2>
+                <ul></ul>
+            </div>
+            <div class="card" id="not-important-not-urgent">
+                <h2>Not Important & Not Urgent (Eliminate)</h2>
+                <ul></ul>
+            </div>
+        </div>
 
-    const list = document.querySelector(`#${categoryId} ul`);
+        <button class="clear-button" onclick="clearAll()">Clear All Tasks</button>
+    </div>
 
-    const listItem = createTaskElement(task, deadline, false, categoryId, notification);
-    list.appendChild(listItem);
+    <script>
+        document.addEventListener('DOMContentLoaded', loadTasks);
 
-    saveTask(task, deadline, category, notification, false);
+        function addTask() {
+            const task = document.getElementById('task').value;
+            const deadline = document.getElementById('deadline').value;
+            const category = document.getElementById('category').value;
+            const notification = document.getElementById('notification').value;
 
-    document.getElementById('task').value = '';
-    document.getElementById('deadline').value = '';
-}
+            if (!task || !deadline) {
+                alert('Please enter both task and deadline');
+                return;
+            }
+
+            const list = document.querySelector(`#${category} ul`);
+            const listItem = createTaskElement(task, deadline, false, category, notification);
+            list.appendChild(listItem);
+
+            saveTask(task, deadline, category, notification, false);
+
+            document.getElementById('task').value = '';
+            document.getElementById('deadline').value = '';
+        }
+
+        function createTaskElement(taskText, deadline, completed, categoryId, notification) {
+            const listItem = document.createElement('li');
+            listItem.className = completed ? 'completed' : '';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = completed;
+            checkbox.addEventListener('change', () => handleTaskCompletion(checkbox, listItem, taskText, categoryId));
+
+            const label = document.createElement('label');
+            label.textContent = `${taskText} (Deadline: ${deadline})`;
+
+            listItem.appendChild(checkbox);
+            listItem.appendChild(label);
+
+            scheduleNotification(taskText, deadline, notification);
+
+            return listItem;
+        }
+
+        function handleTaskCompletion(checkbox, listItem, taskText, categoryId) {
+            const completed = checkbox.checked;
+            listItem.className = completed ? 'completed' : '';
+
+            if (completed) {
+                setTimeout(() => {
+                    listItem.remove();
+                    removeTask(taskText);
+                }, 48 * 60 * 60 * 1000); // 48 hours
+            }
+
+            updateTaskStatus(taskText, completed);
+        }
+
+        function scheduleNotification(taskText, deadline, notificationHours) {
+            const deadlineTime = new Date(deadline).getTime();
+            const notificationTime = deadlineTime - notificationHours * 60 * 60 * 1000;
+
+            if (notificationTime > Date.now()) {
+                setTimeout(() => {
+                    alert(`Reminder: "${taskText}" is due soon!`);
+                }, notificationTime - Date.now());
+            }
+        }
+
+        function saveTask(task, deadline, category, notification, completed) {
+            const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            tasks.push({ task, deadline, category, notification, completed });
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+
+        function loadTasks() {
+            const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            tasks.forEach(({ task, deadline, category, notification, completed }) => {
+                const list = document.querySelector(`#${category} ul`);
+                const listItem = createTaskElement(task, deadline, completed, category, notification);
+                list.appendChild(listItem);
+            });
+        }
+
+        function updateTaskStatus(taskText, completed) {
+            const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            const task = tasks.find(t => t.task === taskText);
+            if (task) {
+                task.completed = completed;
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+            }
+        }
+
+        function removeTask(taskText) {
+            let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            tasks = tasks.filter(t => t.task !== taskText);
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+
+        function clearAll() {
+    
