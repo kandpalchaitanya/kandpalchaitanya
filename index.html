@@ -169,4 +169,11 @@
         }
 
         function clearAll() {
-    
+            if (confirm('Are you sure you want to clear all tasks?')) {
+                localStorage.removeItem('tasks');
+                document.querySelectorAll('.matrix ul').forEach(ul => ul.innerHTML = '');
+            }
+        }
+    </script>
+</body>
+</html>
