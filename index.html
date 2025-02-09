@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eisenhower Matrix with Login</title>
+    <title>Eisenhower Matrix</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -79,22 +79,11 @@
         .card ul li label {
             flex: 1;
         }
-        .login {
-            margin-bottom: 20px;
-            text-align: center;
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Eisenhower Matrix</h1>
-
-        <div class="login">
-            <input type="email" id="email" placeholder="Enter your email">
-            <input type="password" id="password" placeholder="Enter your password">
-            <button onclick="loginUser()">Login</button>
-            <button onclick="registerUser()">Register</button>
-        </div>
 
         <div class="task-input">
             <input type="text" id="task" placeholder="Enter a new task">
@@ -136,41 +125,6 @@
     </div>
 
     <script>
-        let users = [];
-
-        function loginUser() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-
-            const user = users.find(u => u.email === email && u.password === password);
-
-            if (user) {
-                alert(`Welcome back, ${email}!`);
-            } else {
-                alert("Invalid email or password. Please try again.");
-            }
-        }
-
-        function registerUser() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-
-            if (!email || !password) {
-                alert("Please provide both email and password.");
-                return;
-            }
-
-            const existingUser = users.find(u => u.email === email);
-
-            if (existingUser) {
-                alert("User already exists. Please log in.");
-                return;
-            }
-
-            users.push({ email, password });
-            alert("Registration successful. You can now log in.");
-        }
-
         function addTask() {
             const task = document.getElementById('task').value;
             const deadline = document.getElementById('deadline').value;
