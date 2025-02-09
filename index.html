@@ -125,6 +125,8 @@
     </div>
 
     <script>
+        document.addEventListener('DOMContentLoaded', loadTasks);
+
         function addTask() {
             const task = document.getElementById('task').value;
             const deadline = document.getElementById('deadline').value;
@@ -141,6 +143,8 @@
 
             const listItem = createTaskElement(task, deadline, false, categoryId, notification);
             list.appendChild(listItem);
+
+            saveTask(task, deadline, category, notification, false);
 
             document.getElementById('task').value = '';
             document.getElementById('deadline').value = '';
@@ -173,8 +177,11 @@
             if (completed) {
                 setTimeout(() => {
                     listItem.remove();
+                    removeTask(taskText);
                 }, 48 * 60 * 60 * 1000); // 48 hours
             }
+
+            updateTaskStatus(taskText, completed);
         }
 
         function scheduleNotification(taskText, deadline, notificationHours) {
@@ -186,6 +193,38 @@
                     alert(`Reminder: "${taskText}" is due soon!`);
                 }, notificationTime - Date.now());
             }
+        }
+
+        function saveTask(task, deadline, category, notification, completed) {
+            const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            tasks.push({ task, deadline, category, notification, completed });
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+
+        function loadTasks() {
+            const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            tasks.forEach(({ task, deadline, category, notification, completed }) => {
+                const categoryId = category.toLowerCase().replace(/\s+&\s+/g, '-').replace(/\s+/g, '-');
+                const list = document.querySelector(`#${categoryId} ul`);
+
+                const listItem = createTaskElement(task, deadline, completed, categoryId, notification);
+                list.appendChild(listItem);
+            });
+        }
+
+        function updateTaskStatus(taskText, completed) {
+            const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            const task = tasks.find(t => t.task === taskText);
+            if (task) {
+                task.completed = completed;
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+            }
+        }
+
+        function removeTask(taskText) {
+            let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            tasks = tasks.filter(t => t.task !== taskText);
+            localStorage.setItem('tasks', JSON.stringify(tasks));
         }
     </script>
 </body>
