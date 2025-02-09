@@ -1,203 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eisenhower Matrix</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f9f9f9;
-        }
-        .container {
-            padding: 20px;
-            max-width: 1200px;
-            margin: auto;
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-        .task-input {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .task-input input, .task-input select {
-            flex: 1;
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        .task-input button {
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        .task-input button:hover {
-            background-color: #0056b3;
-        }
-        .matrix {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        .card {
-            background-color: white;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            padding: 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .card h2 {
-            font-size: 18px;
-            color: #333;
-            margin-bottom: 10px;
-        }
-        .card ul {
-            list-style-type: none;
-            padding-left: 0;
-            color: #555;
-        }
-        .card ul li {
-            margin-bottom: 5px;
-            display: flex;
-            align-items: center;
-        }
-        .card ul li.completed {
-            color: #aaa;
-            text-decoration: line-through;
-        }
-        .card ul li label {
-            flex: 1;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Eisenhower Matrix</h1>
+function addTask() {
+    const task = document.getElementById('task').value;
+    const deadline = document.getElementById('deadline').value;
+    const category = document.getElementById('category').value;
+    const notification = document.getElementById('notification').value;
 
-        <div class="task-input">
-            <input type="text" id="task" placeholder="Enter a new task">
-            <select id="category">
-                <option value="Important & Urgent">Important & Urgent (Do First)</option>
-                <option value="Important but Not Urgent">Important but Not Urgent (Schedule)</option>
-                <option value="Not Important but Urgent">Not Important but Urgent (Delegate)</option>
-                <option value="Not Important & Not Urgent">Not Important & Not Urgent (Eliminate)</option>
-            </select>
-            <button onclick="addTask()">Add Task</button>
-        </div>
+    if (!task || !deadline) {
+        alert('Please enter both task and deadline');
+        return;
+    }
 
-        <div class="matrix">
-            <div class="card" id="important-urgent">
-                <h2>Important & Urgent (Do First)</h2>
-                <ul></ul>
-            </div>
-            <div class="card" id="important-not-urgent">
-                <h2>Important but Not Urgent (Schedule)</h2>
-                <ul></ul>
-            </div>
-            <div class="card" id="not-important-urgent">
-                <h2>Not Important but Urgent (Delegate)</h2>
-                <ul></ul>
-            </div>
-            <div class="card" id="not-important-not-urgent">
-                <h2>Not Important & Not Urgent (Eliminate)</h2>
-                <ul></ul>
-            </div>
-        </div>
-    </div>
+    // Map the category value to the correct DOM ID
+    const categoryMap = {
+        "Important & Urgent": "important-urgent",
+        "Important but Not Urgent": "important-not-urgent",
+        "Not Important but Urgent": "not-important-urgent",
+        "Not Important & Not Urgent": "not-important-not-urgent"
+    };
+    const categoryId = categoryMap[category];
 
-    <script>
-        // Load tasks from local storage on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            const categories = ['important-urgent', 'important-not-urgent', 'not-important-urgent', 'not-important-not-urgent'];
-            categories.forEach(category => {
-                const tasks = JSON.parse(localStorage.getItem(category)) || [];
-                const list = document.querySelector(`#${category} ul`);
-                tasks.forEach(task => {
-                    const listItem = createTaskElement(task.text, task.completed, category);
-                    list.appendChild(listItem);
-                });
-            });
-        });
+    const list = document.querySelector(`#${categoryId} ul`);
 
-        function addTask() {
-            const task = document.getElementById('task').value;
-            const category = document.getElementById('category').value;
+    const listItem = createTaskElement(task, deadline, false, categoryId, notification);
+    list.appendChild(listItem);
 
-            if (!task) {
-                alert('Please enter a task');
-                return;
-            }
+    saveTask(task, deadline, category, notification, false);
 
-            const categoryId = category.toLowerCase().replace(/\s+&\s+/g, '-').replace(/\s+/g, '-');
-            const list = document.querySelector(`#${categoryId} ul`);
-
-            const listItem = createTaskElement(task, false, categoryId);
-            list.appendChild(listItem);
-
-            // Save to local storage
-            saveTaskToLocalStorage(categoryId, task, false);
-
-            document.getElementById('task').value = '';
-        }
-
-        function createTaskElement(taskText, completed, categoryId) {
-            const listItem = document.createElement('li');
-            listItem.className = completed ? 'completed' : '';
-
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.checked = completed;
-            checkbox.addEventListener('change', () => handleTaskCompletion(checkbox, listItem, taskText, categoryId));
-
-            const label = document.createElement('label');
-            label.textContent = taskText;
-
-            listItem.appendChild(checkbox);
-            listItem.appendChild(label);
-
-            return listItem;
-        }
-
-        function handleTaskCompletion(checkbox, listItem, taskText, categoryId) {
-            const completed = checkbox.checked;
-            listItem.className = completed ? 'completed' : '';
-
-            updateTaskInLocalStorage(categoryId, taskText, completed);
-
-            if (completed) {
-                setTimeout(() => {
-                    const tasks = JSON.parse(localStorage.getItem(categoryId)) || [];
-                    const updatedTasks = tasks.filter(task => task.text !== taskText || !task.completed);
-                    localStorage.setItem(categoryId, JSON.stringify(updatedTasks));
-                    listItem.remove();
-                }, 48 * 60 * 60 * 1000); // 48 hours in milliseconds
-            }
-        }
-
-        function saveTaskToLocalStorage(categoryId, taskText, completed) {
-            const tasks = JSON.parse(localStorage.getItem(categoryId)) || [];
-            tasks.push({ text: taskText, completed });
-            localStorage.setItem(categoryId, JSON.stringify(tasks));
-        }
-
-        function updateTaskInLocalStorage(categoryId, taskText, completed) {
-            const tasks = JSON.parse(localStorage.getItem(categoryId)) || [];
-            const updatedTasks = tasks.map(task => 
-                task.text === taskText ? { text: task.text, completed } : task
-            );
-            localStorage.setItem(categoryId, JSON.stringify(updatedTasks));
-        }
-    </script>
-</body>
-</html>
+    document.getElementById('task').value = '';
+    document.getElementById('deadline').value = '';
+}
