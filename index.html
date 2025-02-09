@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eisenhower Matrix</title>
+    <title>Eisenhower Matrix with Login</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -79,19 +79,38 @@
         .card ul li label {
             flex: 1;
         }
+        .login {
+            margin-bottom: 20px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Eisenhower Matrix</h1>
 
+        <div class="login">
+            <input type="email" id="email" placeholder="Enter your email">
+            <input type="password" id="password" placeholder="Enter your password">
+            <button onclick="loginUser()">Login</button>
+            <button onclick="registerUser()">Register</button>
+        </div>
+
         <div class="task-input">
             <input type="text" id="task" placeholder="Enter a new task">
+            <input type="datetime-local" id="deadline">
             <select id="category">
                 <option value="Important & Urgent">Important & Urgent (Do First)</option>
                 <option value="Important but Not Urgent">Important but Not Urgent (Schedule)</option>
                 <option value="Not Important but Urgent">Not Important but Urgent (Delegate)</option>
                 <option value="Not Important & Not Urgent">Not Important & Not Urgent (Eliminate)</option>
+            </select>
+            <select id="notification">
+                <option value="1">1 hour before</option>
+                <option value="3">3 hours before</option>
+                <option value="6">6 hours before</option>
+                <option value="12">12 hours before</option>
+                <option value="24">1 day before</option>
             </select>
             <button onclick="addTask()">Add Task</button>
         </div>
@@ -117,41 +136,38 @@
     </div>
 
     <script>
-        // Load tasks from local storage on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            const categories = ['important-urgent', 'important-not-urgent', 'not-important-urgent', 'not-important-not-urgent'];
-            categories.forEach(category => {
-                const tasks = JSON.parse(localStorage.getItem(category)) || [];
-                const list = document.querySelector(`#${category} ul`);
-                tasks.forEach(task => {
-                    const listItem = createTaskElement(task.text, task.completed, category);
-                    list.appendChild(listItem);
-                });
-            });
-        });
+        const userId = null;
+
+        function loginUser() {
+            alert("Login feature is under development.");
+        }
+
+        function registerUser() {
+            alert("Registration feature is under development.");
+        }
 
         function addTask() {
             const task = document.getElementById('task').value;
+            const deadline = document.getElementById('deadline').value;
             const category = document.getElementById('category').value;
+            const notification = document.getElementById('notification').value;
 
-            if (!task) {
-                alert('Please enter a task');
+            if (!task || !deadline) {
+                alert('Please enter both task and deadline');
                 return;
             }
 
             const categoryId = category.toLowerCase().replace(/\s+&\s+/g, '-').replace(/\s+/g, '-');
             const list = document.querySelector(`#${categoryId} ul`);
 
-            const listItem = createTaskElement(task, false, categoryId);
+            const listItem = createTaskElement(task, deadline, false, categoryId, notification);
             list.appendChild(listItem);
 
-            // Save to local storage
-            saveTaskToLocalStorage(categoryId, task, false);
-
             document.getElementById('task').value = '';
+            document.getElementById('deadline').value = '';
         }
 
-        function createTaskElement(taskText, completed, categoryId) {
+        function createTaskElement(taskText, deadline, completed, categoryId, notification) {
             const listItem = document.createElement('li');
             listItem.className = completed ? 'completed' : '';
 
@@ -161,10 +177,12 @@
             checkbox.addEventListener('change', () => handleTaskCompletion(checkbox, listItem, taskText, categoryId));
 
             const label = document.createElement('label');
-            label.textContent = taskText;
+            label.textContent = `${taskText} (Deadline: ${deadline})`;
 
             listItem.appendChild(checkbox);
             listItem.appendChild(label);
+
+            scheduleNotification(taskText, deadline, notification);
 
             return listItem;
         }
@@ -173,30 +191,22 @@
             const completed = checkbox.checked;
             listItem.className = completed ? 'completed' : '';
 
-            updateTaskInLocalStorage(categoryId, taskText, completed);
-
             if (completed) {
                 setTimeout(() => {
-                    const tasks = JSON.parse(localStorage.getItem(categoryId)) || [];
-                    const updatedTasks = tasks.filter(task => task.text !== taskText || !task.completed);
-                    localStorage.setItem(categoryId, JSON.stringify(updatedTasks));
                     listItem.remove();
-                }, 48 * 60 * 60 * 1000); // 48 hours in milliseconds
+                }, 48 * 60 * 60 * 1000); // 48 hours
             }
         }
 
-        function saveTaskToLocalStorage(categoryId, taskText, completed) {
-            const tasks = JSON.parse(localStorage.getItem(categoryId)) || [];
-            tasks.push({ text: taskText, completed });
-            localStorage.setItem(categoryId, JSON.stringify(tasks));
-        }
+        function scheduleNotification(taskText, deadline, notificationHours) {
+            const deadlineTime = new Date(deadline).getTime();
+            const notificationTime = deadlineTime - notificationHours * 60 * 60 * 1000;
 
-        function updateTaskInLocalStorage(categoryId, taskText, completed) {
-            const tasks = JSON.parse(localStorage.getItem(categoryId)) || [];
-            const updatedTasks = tasks.map(task => 
-                task.text === taskText ? { text: task.text, completed } : task
-            );
-            localStorage.setItem(categoryId, JSON.stringify(updatedTasks));
+            if (notificationTime > Date.now()) {
+                setTimeout(() => {
+                    alert(`Reminder: "${taskText}" is due soon!`);
+                }, notificationTime - Date.now());
+            }
         }
     </script>
 </body>
