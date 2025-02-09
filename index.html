@@ -1,121 +1,244 @@
-<script>
-  document.addEventListener('DOMContentLoaded', loadTasks);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eisenhower Matrix</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        .container {
+            padding: 20px;
+            max-width: 1200px;
+            margin: auto;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .task-input {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .task-input input, .task-input select {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .task-input button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .task-input button:hover {
+            background-color: #0056b3;
+        }
+        .matrix {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 20px;
+        }
+        .card {
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .card h2 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .card ul {
+            list-style-type: none;
+            padding-left: 0;
+            color: #555;
+        }
+        .card ul li {
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+        }
+        .card ul li.completed {
+            color: #aaa;
+            text-decoration: line-through;
+        }
+        .card ul li label {
+            flex: 1;
+        }
+        .quadrant-label {
+            text-align: center;
+            font-size: 14px;
+            font-style: italic;
+            margin-top: -10px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Eisenhower Matrix</h1>
 
-  function normalizeCategory(category) {
-    return category.toLowerCase().replace(/\s+&\s+/g, '-').replace(/\s+/g, '-');
-  }
+        <div class="task-input">
+            <input type="text" id="task" placeholder="Enter a new task">
+            <input type="datetime-local" id="deadline">
+            <select id="category">
+                <option value="Important & Urgent">Important & Urgent (Do First)</option>
+                <option value="Important but Not Urgent">Important but Not Urgent (Schedule)</option>
+                <option value="Not Important but Urgent">Not Important but Urgent (Delegate)</option>
+                <option value="Not Important & Not Urgent">Not Important & Not Urgent (Eliminate)</option>
+            </select>
+            <select id="notification">
+                <option value="1">1 hour before</option>
+                <option value="3">3 hours before</option>
+                <option value="6">6 hours before</option>
+                <option value="12">12 hours before</option>
+                <option value="24">1 day before</option>
+            </select>
+            <button onclick="addTask()">Add Task</button>
+        </div>
 
-  function addTask() {
-    const task = document.getElementById('task').value.trim();
-    const deadline = document.getElementById('deadline').value;
-    const category = document.getElementById('category').value;
-    const notification = document.getElementById('notification').value;
+        <div class="matrix">
+            <div class="card" id="important-urgent">
+                <h2>Important & Urgent</h2>
+                <div class="quadrant-label">(Do First)</div>
+                <ul></ul>
+            </div>
+            <div class="card" id="important-not-urgent">
+                <h2>Important but Not Urgent</h2>
+                <div class="quadrant-label">(Schedule)</div>
+                <ul></ul>
+            </div>
+            <div class="card" id="not-important-urgent">
+                <h2>Not Important but Urgent</h2>
+                <div class="quadrant-label">(Delegate)</div>
+                <ul></ul>
+            </div>
+            <div class="card" id="not-important-not-urgent">
+                <h2>Not Important & Not Urgent</h2>
+                <div class="quadrant-label">(Eliminate)</div>
+                <ul></ul>
+            </div>
+        </div>
+    </div>
 
-    if (!task || !deadline) {
-      alert('Please enter both task and deadline');
-      return;
-    }
+    <script>
+        document.addEventListener('DOMContentLoaded', loadTasks);
 
-    const categoryId = normalizeCategory(category);
-    const list = document.querySelector(`#${categoryId} ul`);
+        function addTask() {
+            const task = document.getElementById('task').value;
+            const deadline = document.getElementById('deadline').value;
+            const category = document.getElementById('category').value;
+            const notification = document.getElementById('notification').value;
 
-    if (!list) {
-      alert('Invalid category selected');
-      return;
-    }
+            if (!task || !deadline) {
+                alert('Please enter both task and deadline');
+                return;
+            }
 
-    const listItem = createTaskElement(task, deadline, false, categoryId, notification);
-    list.appendChild(listItem);
+            const categoryId = category.toLowerCase().replace(/\s+&\s+/g, '-').replace(/\s+/g, '-');
+            const list = document.querySelector(`#${categoryId} ul`);
 
-    saveTask(task, deadline, category, notification, false);
+            const listItem = createTaskElement(task, deadline, false, categoryId, notification);
+            list.appendChild(listItem);
 
-    document.getElementById('task').value = '';
-    document.getElementById('deadline').value = '';
-  }
+            saveTask(task, deadline, category, notification, false);
 
-  function createTaskElement(taskText, deadline, completed, categoryId, notification) {
-    const listItem = document.createElement('li');
-    listItem.className = completed ? 'completed' : '';
+            document.getElementById('task').value = '';
+            document.getElementById('deadline').value = '';
+        }
 
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.checked = completed;
-    checkbox.addEventListener('change', () => handleTaskCompletion(checkbox, listItem, taskText, categoryId));
+        function createTaskElement(taskText, deadline, completed, categoryId, notification) {
+            const listItem = document.createElement('li');
+            listItem.className = completed ? 'completed' : '';
 
-    const label = document.createElement('label');
-    label.textContent = `${taskText} (Deadline: ${new Date(deadline).toLocaleString()})`;
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = completed;
+            checkbox.addEventListener('change', () => handleTaskCompletion(checkbox, listItem, taskText, categoryId));
 
-    listItem.appendChild(checkbox);
-    listItem.appendChild(label);
+            const label = document.createElement('label');
+            label.textContent = `${taskText} (Deadline: ${new Date(deadline).toLocaleString()})`;
 
-    scheduleNotification(taskText, deadline, notification);
+            listItem.appendChild(checkbox);
+            listItem.appendChild(label);
 
-    return listItem;
-  }
+            scheduleNotification(taskText, deadline, notification);
 
-  function handleTaskCompletion(checkbox, listItem, taskText, categoryId) {
-    const completed = checkbox.checked;
-    listItem.className = completed ? 'completed' : '';
+            return listItem;
+        }
 
-    if (completed) {
-      setTimeout(() => {
-        listItem.remove();
-        removeTask(taskText);
-      }, 48 * 60 * 60 * 1000); // 48 hours
-    }
+        function handleTaskCompletion(checkbox, listItem, taskText, categoryId) {
+            const completed = checkbox.checked;
+            listItem.className = completed ? 'completed' : '';
 
-    updateTaskStatus(taskText, completed);
-  }
+            if (completed) {
+                setTimeout(() => {
+                    listItem.remove();
+                    removeTask(taskText);
+                }, 48 * 60 * 60 * 1000); // 48 hours
+            }
 
-  function scheduleNotification(taskText, deadline, notificationHours) {
-    const deadlineTime = new Date(deadline).getTime();
-    const notificationTime = deadlineTime - notificationHours * 60 * 60 * 1000;
+            updateTaskStatus(taskText, completed);
+        }
 
-    if (notificationTime > Date.now()) {
-      setTimeout(() => {
-        alert(`Reminder: "${taskText}" is due soon!`);
-      }, notificationTime - Date.now());
-    }
-  }
+        function scheduleNotification(taskText, deadline, notificationHours) {
+            const deadlineTime = new Date(deadline).getTime();
+            const notificationTime = deadlineTime - notificationHours * 60 * 60 * 1000;
 
-  function saveTask(task, deadline, category, notification, completed) {
-    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-    tasks.push({ task, deadline, category, notification, completed });
-    localStorage.setItem('tasks', JSON.stringify(tasks));
-  }
+            if (notificationTime > Date.now()) {
+                setTimeout(() => {
+                    alert(`Reminder: "${taskText}" is due soon!`);
+                }, notificationTime - Date.now());
+            }
+        }
 
-  function loadTasks() {
-    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-    tasks.forEach(({ task, deadline, category, notification, completed }) => {
-      const categoryId = normalizeCategory(category);
-      const list = document.querySelector(`#${categoryId} ul`);
+        function saveTask(task, deadline, category, notification, completed) {
+            const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            tasks.push({ task, deadline, category, notification, completed });
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
 
-      if (list) {
-        const listItem = createTaskElement(task, deadline, completed, categoryId, notification);
-        list.appendChild(listItem);
-      }
-    });
-  }
+        function loadTasks() {
+            const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            tasks.forEach(({ task, deadline, category, notification, completed }) => {
+                const categoryId = category.toLowerCase().replace(/\s+&\s+/g, '-').replace(/\s+/g, '-');
+                const list = document.querySelector(`#${categoryId} ul`);
 
-  function updateTaskStatus(taskText, completed) {
-    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-    const task = tasks.find(t => t.task === taskText);
-    if (task) {
-      task.completed = completed;
-      localStorage.setItem('tasks', JSON.stringify(tasks));
-    }
-  }
+                const listItem = createTaskElement(task, deadline, completed, categoryId, notification);
+                list.appendChild(listItem);
+            });
+        }
 
-  function removeTask(taskText) {
-    let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-    tasks = tasks.filter(t => t.task !== taskText);
-    localStorage.setItem('tasks', JSON.stringify(tasks));
-  }
+        function updateTaskStatus(taskText, completed) {
+            const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            const task = tasks.find(t => t.task === taskText);
+            if (task) {
+                task.completed = completed;
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+            }
+        }
 
-  function clearAll() {
-    if (confirm('Are you sure you want to delete all tasks?')) {
-      localStorage.removeItem('tasks');
-      document.querySelectorAll('.card ul').forEach(ul => (ul.innerHTML = ''));
-    }
-  }
-</script>
+        function removeTask(taskText) {
+            let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            tasks = tasks.filter(t => t.task !== taskText);
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
+    </script>
+</body>
+</html>
