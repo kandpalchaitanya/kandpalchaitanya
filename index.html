@@ -5,22 +5,127 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Eisenhower Matrix</title>
     <style>
-        /* Existing styles remain unchanged */
-        .clear-button {
-            margin-top: 20px;
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        .container {
+            padding: 20px;
+            max-width: 1200px;
+            margin: auto;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .task-input {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .task-input input, .task-input select {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .task-input button {
             padding: 10px 20px;
-            background-color: #ff4d4d;
+            background-color: #007bff;
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
         }
-        .clear-button:hover {
-            background-color: #cc0000;
+        .task-input button:hover {
+            background-color: #0056b3;
+        }
+        .matrix {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 20px;
+        }
+        .card {
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .card h2 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .card ul {
+            list-style-type: none;
+            padding-left: 0;
+            color: #555;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .card ul li {
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            transition: opacity 0.3s ease, color 0.3s ease;
+        }
+        .card ul li.completed {
+            color: #aaa;
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+        .card ul li label {
+            flex: 1;
+        }
+        .clear-btn {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .clear-btn:hover {
+            background-color: #a71d2a;
+        }
+        .matrix .card:nth-child(1) {
+            grid-column: 1;
+            grid-row: 1;
+        }
+        .matrix .card:nth-child(2) {
+            grid-column: 2;
+            grid-row: 1;
+        }
+        .matrix .card:nth-child(3) {
+            grid-column: 1;
+            grid-row: 2;
+        }
+        .matrix .card:nth-child(4) {
+            grid-column: 2;
+            grid-row: 2;
+        }
+        .card::before {
+            content: attr(data-category);
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            background: #007bff;
+            color: #fff;
+            padding: 2px 8px;
+            font-size: 12px;
+            border-radius: 4px;
         }
     </style>
 </head>
@@ -47,26 +152,26 @@
             <button onclick="addTask()">Add Task</button>
         </div>
 
+        <button class="clear-btn" onclick="clearAllTasks()">Clear All Tasks</button>
+
         <div class="matrix">
-            <div class="card" id="important-urgent">
-                <h2>Important & Urgent (Do First)</h2>
+            <div class="card" id="important-urgent" data-category="Do First">
+                <h2>Important & Urgent</h2>
                 <ul></ul>
             </div>
-            <div class="card" id="important-not-urgent">
-                <h2>Important but Not Urgent (Schedule)</h2>
+            <div class="card" id="important-not-urgent" data-category="Schedule">
+                <h2>Important but Not Urgent</h2>
                 <ul></ul>
             </div>
-            <div class="card" id="not-important-urgent">
-                <h2>Not Important but Urgent (Delegate)</h2>
+            <div class="card" id="not-important-urgent" data-category="Delegate">
+                <h2>Not Important but Urgent</h2>
                 <ul></ul>
             </div>
-            <div class="card" id="not-important-not-urgent">
-                <h2>Not Important & Not Urgent (Eliminate)</h2>
+            <div class="card" id="not-important-not-urgent" data-category="Eliminate">
+                <h2>Not Important & Not Urgent</h2>
                 <ul></ul>
             </div>
         </div>
-
-        <button class="clear-button" onclick="clearAll()">Clear All Tasks</button>
     </div>
 
     <script>
@@ -84,6 +189,7 @@
             }
 
             const list = document.querySelector(`#${category} ul`);
+
             const listItem = createTaskElement(task, deadline, false, category, notification);
             list.appendChild(listItem);
 
@@ -148,6 +254,7 @@
             const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
             tasks.forEach(({ task, deadline, category, notification, completed }) => {
                 const list = document.querySelector(`#${category} ul`);
+
                 const listItem = createTaskElement(task, deadline, completed, category, notification);
                 list.appendChild(listItem);
             });
@@ -168,7 +275,7 @@
             localStorage.setItem('tasks', JSON.stringify(tasks));
         }
 
-        function clearAll() {
+        function clearAllTasks() {
             if (confirm('Are you sure you want to clear all tasks?')) {
                 localStorage.removeItem('tasks');
                 document.querySelectorAll('.matrix ul').forEach(ul => ul.innerHTML = '');
