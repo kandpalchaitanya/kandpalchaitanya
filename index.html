@@ -136,14 +136,39 @@
     </div>
 
     <script>
-        const userId = null;
+        let users = [];
 
         function loginUser() {
-            alert("Login feature is under development.");
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const user = users.find(u => u.email === email && u.password === password);
+
+            if (user) {
+                alert(`Welcome back, ${email}!`);
+            } else {
+                alert("Invalid email or password. Please try again.");
+            }
         }
 
         function registerUser() {
-            alert("Registration feature is under development.");
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (!email || !password) {
+                alert("Please provide both email and password.");
+                return;
+            }
+
+            const existingUser = users.find(u => u.email === email);
+
+            if (existingUser) {
+                alert("User already exists. Please log in.");
+                return;
+            }
+
+            users.push({ email, password });
+            alert("Registration successful. You can now log in.");
         }
 
         function addTask() {
